@@ -1,0 +1,2 @@
+//include ":android-smsmms"
+//project(":android-smsmms").projectDir = file("android-smsmms/library")
