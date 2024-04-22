@@ -1,7 +1,7 @@
 
 import 'dart:async';
 
-import 'package:request_permission/request_permission.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'src/models/attachment.dart';
 import 'src/models/message_impl.dart';
@@ -40,22 +40,8 @@ class TelephonyPlus {
   } 
 
   Future<bool> requestPermissions() async {
-    final completer = Completer<bool>();
-
+    var status = await Permission.sms.request();
     
-
-    RequestPermission.instace.results.listen((event) {
-      final results = event.grantedPermissions.entries.map((e) => e.value);
-      completer.complete(!results.contains(false));
-    });
-
-    await RequestPermission.instace.requestMultipleAndroidPermissions({
-      "android.permission.SEND_SMS",
-      "android.permission.READ_SMS",
-      "android.permission.RECEIVE_MMS",
-      "android.permission.RECEIVE_SMS",
-    }, 0);
-
-    return completer.future;
+    return status.isGranted;
   }
 }
