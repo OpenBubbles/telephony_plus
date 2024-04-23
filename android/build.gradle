@@ -43,6 +43,8 @@ android {
     defaultConfig {
         minSdkVersion 21
     }
+
+    buildTypes { profile { matchingFallbacks = ['debug', 'release'] }  }
 }
 
 dependencies {

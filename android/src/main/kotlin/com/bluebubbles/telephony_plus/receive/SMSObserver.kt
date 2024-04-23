@@ -1,12 +1,15 @@
 package com.bluebubbles.telephony_plus.receive
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.Handler
 import android.provider.Telephony
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.bluebubbles.telephony_plus.query.RecipientQuery
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
@@ -28,6 +31,10 @@ class SMSObserver(val context: Context, handler: Handler): ContentObserver(handl
 
     override fun onChange(selfChange: Boolean, uri: Uri?) {
         super.onChange(selfChange, uri)
+
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)
+            return
+
         var cursor = context.contentResolver.query(
             Uri.parse("content://mms-sms/complete-conversations"),
             arrayOf("ct_t", "_id", "m_type", "type", "body", "address", "thread_id", "date"), null, null, null)
@@ -63,8 +70,10 @@ class SMSObserver(val context: Context, handler: Handler): ContentObserver(handl
         val isMMS = dataObject["ct_t"] == "application/vnd.wap.multipart.related" || dataObject["ct_t"] == "application/vnd.wap.multipart.mixed"
 
         if (lastId?.first == dataObject["_id"] && lastId?.second == isMMS) {
-            return;
+            return
         }
+        if (!dataObject.containsKey("_id"))
+            return
         // new message
         val id = dataObject["_id"] as Int
         lastId = Pair(id, isMMS)
