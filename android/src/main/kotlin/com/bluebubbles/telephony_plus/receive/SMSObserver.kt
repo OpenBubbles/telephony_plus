@@ -172,6 +172,8 @@ class SMSObserver(val context: Context, handler: Handler): ContentObserver(handl
 
         val messageMap = HashMap<String, Any>()
 
+        if (!dataObject.containsKey("address"))
+            return
         messageMap["sender"] = dataObject["address"] as String
         messageMap["body"] = body
         messageMap["thread_id"] = dataObject["thread_id"] as Int
