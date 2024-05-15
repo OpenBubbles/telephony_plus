@@ -16,14 +16,13 @@ import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.util.UUID
 
-class SMSObserver(val context: Context, handler: Handler): ContentObserver(handler) {
+class SMSObserver(val context: Context, handler: Handler, val listener: (context: Context, message: HashMap<String, Any>) -> Unit): ContentObserver(handler) {
 
     companion object {
-        fun init(context: Context) {
+        fun init(context: Context, listener: (context: Context, message: HashMap<String, Any>) -> Unit) {
             Log.e("TEST", "INIT MSG")
-            context.contentResolver.registerContentObserver(Uri.parse("content://mms-sms/complete-conversations"), true, SMSObserver(context, Handler(context.mainLooper)))
+            context.contentResolver.registerContentObserver(Uri.parse("content://mms-sms/complete-conversations"), true, SMSObserver(context, Handler(context.mainLooper), listener))
         }
-        var listener: ((context: Context, message: HashMap<String, Any>) -> Unit)? = null
     }
 
     var lastMms: Pair<Int, Boolean>? = null
@@ -134,6 +133,7 @@ class SMSObserver(val context: Context, handler: Handler): ContentObserver(handl
                 myBody["contentType"] = mmsDataObject["ct"] as String
                 myBody["body"] = bytes
                 myBody["id"] = uuid.toString().uppercase()
+                Log.i("SMSDAT", uuid.toString())
                 body.add(myBody)
             }
             mmsCursor?.close()
@@ -156,6 +156,9 @@ class SMSObserver(val context: Context, handler: Handler): ContentObserver(handl
                 return; // outgoing
             }
 
+            if (dataObject["body"] == null)
+                return
+
             val myBody = HashMap<String, Any>()
 
             val md = MessageDigest.getInstance("SHA-256")
@@ -163,6 +166,7 @@ class SMSObserver(val context: Context, handler: Handler): ContentObserver(handl
             val data = md.digest()
             val buffer = ByteBuffer.wrap(data)
             val uuid = UUID(buffer.getLong(), buffer.getLong())
+            Log.i("SMSDAT", uuid.toString())
 
             myBody["contentType"] = "text/plain"
             myBody["id"] = uuid.toString().uppercase()
@@ -207,7 +211,7 @@ class SMSObserver(val context: Context, handler: Handler): ContentObserver(handl
 
 
 
-        listener!!(
+        listener(
                 context,
                 messageMap
         )
