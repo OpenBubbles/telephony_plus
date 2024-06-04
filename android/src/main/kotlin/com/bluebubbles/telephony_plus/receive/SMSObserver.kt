@@ -21,7 +21,16 @@ class SMSObserver(val context: Context, handler: Handler, val listener: (context
     companion object {
         fun init(context: Context, listener: (context: Context, message: HashMap<String, Any>) -> Unit) {
             Log.e("TEST", "INIT MSG")
-            context.contentResolver.registerContentObserver(Uri.parse("content://mms-sms/complete-conversations"), true, SMSObserver(context, Handler(context.mainLooper), listener))
+            try {
+                context.contentResolver.registerContentObserver(
+                    Uri.parse("content://mms-sms/complete-conversations"),
+                    true,
+                    SMSObserver(context, Handler(context.mainLooper), listener)
+                )
+            } catch (e: SecurityException) {
+                Log.e("TESTEX", e.message ?: "securityexception")
+                e.printStackTrace()
+            }
         }
     }
 
