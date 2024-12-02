@@ -45,6 +45,7 @@ android {
     }
 
     buildTypes { profile { matchingFallbacks = ['debug', 'release'] }  }
+    namespace "com.bluebubbles.telephony_plus"
 }
 
 dependencies {
