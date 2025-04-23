@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.database.Cursor
+import android.database.CursorIndexOutOfBoundsException
 import android.net.Uri
 import android.os.Handler
 import android.provider.Telephony
@@ -28,7 +29,7 @@ class SMSObserver(val context: Context, handler: Handler, val listener: (context
                     SMSObserver(context, Handler(context.mainLooper), listener)
                 )
             } catch (e: SecurityException) {
-                Log.e("TESTEX", e.message ?: "securityexception")
+                Log.e("TESTEX   ", e.message ?: "securityexception")
                 e.printStackTrace()
             }
         }
@@ -54,23 +55,27 @@ class SMSObserver(val context: Context, handler: Handler, val listener: (context
 //        Log.i("TESTDATE", cursor.getLong(cursor.getColumnIndexOrThrow("date")).toString())
 
         val dataObject = HashMap<String, Any>()
-        // get columns in the table, their data types, and their values. Insert into the
-        // data object for the message.
-        for (columnName in cursor.columnNames) {
-            val index = cursor.getColumnIndexOrThrow(columnName)
-            val type = cursor.getType(index)
-            val value : Any?
-            value = when (type) {
-                Cursor.FIELD_TYPE_BLOB -> cursor.getBlob(index)
-                Cursor.FIELD_TYPE_FLOAT -> cursor.getFloat(index)
-                Cursor.FIELD_TYPE_INTEGER -> cursor.getInt(index)
-                Cursor.FIELD_TYPE_STRING -> cursor.getString(index)
-                Cursor.FIELD_TYPE_NULL -> null
-                else -> null
+        try {
+            // get columns in the table, their data types, and their values. Insert into the
+            // data object for the message.
+            for (columnName in cursor.columnNames) {
+                val index = cursor.getColumnIndexOrThrow(columnName)
+                val type = cursor.getType(index)
+                val value: Any?
+                value = when (type) {
+                    Cursor.FIELD_TYPE_BLOB -> cursor.getBlob(index)
+                    Cursor.FIELD_TYPE_FLOAT -> cursor.getFloat(index)
+                    Cursor.FIELD_TYPE_INTEGER -> cursor.getInt(index)
+                    Cursor.FIELD_TYPE_STRING -> cursor.getString(index)
+                    Cursor.FIELD_TYPE_NULL -> null
+                    else -> null
+                }
+                if (value != null) {
+                    dataObject[columnName] = value
+                }
             }
-            if (value != null) {
-                dataObject[columnName] = value
-            }
+        } catch (e: CursorIndexOutOfBoundsException) {
+            return
         }
 
         Log.i("TESTINIT", dataObject.toString())
