@@ -92,11 +92,10 @@ class SMSObserver(val context: Context, handler: Handler, val listener: (context
         lastId = Pair(id, isMMS)
 
         val body = ArrayList<HashMap<String, Any>>();
+        var isFromMe = false
         if (isMMS) {
-            if (dataObject["m_type"] == 128) {
-                Log.i("TEST", dataObject.toString())
-                return; // sent by me (is this a standard? always true? SOMEONE DOCUMENT THIS!!!)
-            }
+            if (dataObject["m_type"] == 128)
+                isFromMe = true
 
             val singleMmsUri = Uri.parse("content://mms/part")
             // query the MMS Part table with the MMS ID
@@ -165,10 +164,8 @@ class SMSObserver(val context: Context, handler: Handler, val listener: (context
             }
             mmsAddrCursor?.close()
         } else {
-            if (dataObject["type"] == 2) {
-                Log.i("TEST", dataObject.toString())
-                return; // outgoing
-            }
+            if (dataObject["type"] == 2)
+                isFromMe = true
 
             if (dataObject["body"] == null)
                 return
@@ -192,7 +189,7 @@ class SMSObserver(val context: Context, handler: Handler, val listener: (context
 
         if (!dataObject.containsKey("address"))
             return
-        messageMap["sender"] = dataObject["address"] as String
+        messageMap["sender"] = if (isFromMe) "me" else dataObject["address"] as String
         messageMap["body"] = body
         messageMap["thread_id"] = dataObject["thread_id"] as Int
 
