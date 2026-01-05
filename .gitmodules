@@ -1,0 +1,3 @@
+[submodule "android-smsmms"]
+	path = android-smsmms
+	url = https://github.com/OpenBubbles/android-smsmms.git
